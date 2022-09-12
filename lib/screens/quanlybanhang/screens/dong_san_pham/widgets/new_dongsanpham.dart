@@ -23,6 +23,8 @@ class _NewDongSanPhamState extends State<NewDongSanPham> {
 
   bool _isEdit = false;
 
+  bool _isLoading = false;
+
   DongSanPham _editDongSanPham = DongSanPham(
     id: int.parse(DateTime.now().millisecondsSinceEpoch.toString()),
     productFamilyCode: '',
@@ -54,7 +56,7 @@ class _NewDongSanPhamState extends State<NewDongSanPham> {
     super.didChangeDependencies();
   }
 
-  void _onSubmitPressed() {
+  void _onSubmitPressed() async {
     if (_fbKey.currentState!.saveAndValidate()) {
       final formData = _fbKey.currentState!.value;
 
@@ -65,29 +67,55 @@ class _NewDongSanPhamState extends State<NewDongSanPham> {
         description: formData[moTa],
       );
       if (_isEdit) {
-        Provider.of<DongSanPhamItems>(context, listen: false)
-            .updateItem(widget.id!, _editDongSanPham);
-        Fluttertoast.showToast(
-            msg: 'Cập nhật thành công',
-            toastLength: Toast.LENGTH_SHORT,
+        setState(() {
+          _isLoading = true;
+        });
+        try {
+          await Provider.of<DongSanPhamItems>(context, listen: false)
+              .updateItem(widget.id!, _editDongSanPham);
+          Fluttertoast.showToast(
+              msg: 'Cập nhật thành công',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        } catch (e) {
+          Fluttertoast.showToast(
+            msg: e.toString(),
+            toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.red,
             textColor: Colors.white,
-            fontSize: 16.0);
+            fontSize: 16.0,
+          );
+        } finally {
+          Navigator.of(context).pop();
+          setState(() {
+            _isLoading = false;
+          });
+        }
       } else {
-        Provider.of<DongSanPhamItems>(context, listen: false)
-            .addDongSanPham(_editDongSanPham);
-        Fluttertoast.showToast(
-            msg: 'Thêm thành công',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-            fontSize: 16.0);
+        setState(() {
+          _isLoading = true;
+        });
+        try {
+          await Provider.of<DongSanPhamItems>(context, listen: false)
+              .addDongSanPham(_editDongSanPham)
+              .then((_) {
+            Fluttertoast.showToast(msg: 'Thêm thành công');
+          });
+        } catch (e) {
+          Fluttertoast.showToast(msg: 'Thêm thất bại');
+        } finally {
+          Navigator.of(context).pop();
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
-      Navigator.of(context).pop();
     }
   }
 
@@ -163,13 +191,22 @@ class _NewDongSanPhamState extends State<NewDongSanPham> {
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
                           onPressed: () => _onSubmitPressed(),
-                          child: Text(
-                            _isEdit ? 'Sửa' : 'Thêm',
-                            style: TextStyle(
-                              fontFamily: GoogleFonts.montserrat().fontFamily,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          )),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    backgroundColor: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  _isEdit ? 'Sửa' : 'Thêm',
+                                  style: TextStyle(
+                                    fontFamily:
+                                        GoogleFonts.montserrat().fontFamily,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                )),
                     ),
                   ],
                 ))

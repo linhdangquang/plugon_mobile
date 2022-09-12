@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:plugon_mobile/providers/auth.dart';
 import 'package:plugon_mobile/providers/quanlybanhang/dongsanpham.dart';
+import 'package:plugon_mobile/providers/quanlybanhang/sanpham.dart';
 import 'package:plugon_mobile/screens/404page/404page.dart';
 import 'package:plugon_mobile/screens/home/home_screen.dart';
 import 'package:plugon_mobile/screens/login/login.dart';
 import 'package:plugon_mobile/screens/quanlybanhang/quanlybanhang_screen.dart';
 import 'package:plugon_mobile/screens/quanlybanhang/screens/dong_san_pham/dongsanpham_screen.dart';
+import 'package:plugon_mobile/screens/quanlybanhang/screens/sanpham/create_sanpham_screen.dart';
+import 'package:plugon_mobile/screens/quanlybanhang/screens/sanpham/sanpham_screen.dart';
 import 'package:plugon_mobile/screens/splashscreen/splash_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -45,6 +48,11 @@ class MyApp extends StatelessWidget {
               create: (_) => DongSanPhamItems(accessToken: '', items: []),
               update: ((_, value, previous) => DongSanPhamItems(
                   accessToken: value.accessToken, items: previous!.items))),
+          ChangeNotifierProxyProvider<Auth, SanPhamItems>(
+            create: (_) => SanPhamItems(accessToken: '', items: []),
+            update: ((_, value, previous) => SanPhamItems(
+                accessToken: value.accessToken, items: previous!.items)),
+          )
         ],
         child: Consumer<Auth>(builder: (context, auth, _) {
           return MaterialApp(
@@ -66,6 +74,8 @@ class MyApp extends StatelessWidget {
               LoginPage.routeName: (_) => const LoginPage(),
               QuanLyBanHangScreen.routeName: (_) => const QuanLyBanHangScreen(),
               DongSanPhamScreen.routeName: (_) => const DongSanPhamScreen(),
+              SanPhamScreen.routeName: (_) => const SanPhamScreen(),
+              CreateSanPhamScreen.routeName: (_) => const CreateSanPhamScreen(),
             },
             onUnknownRoute: (_) {
               return MaterialPageRoute(

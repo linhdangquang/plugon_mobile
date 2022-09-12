@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plugon_mobile/providers/auth.dart';
 import 'package:plugon_mobile/screens/quanlybanhang/screens/dong_san_pham/dongsanpham_screen.dart';
+import 'package:plugon_mobile/screens/quanlybanhang/screens/sanpham/sanpham_screen.dart';
 import 'package:provider/provider.dart';
 
 class QuanLyBanHangDrawer extends StatelessWidget {
@@ -98,7 +99,19 @@ class QuanLyBanHangDrawer extends StatelessWidget {
                     ),
                     onTap: () {
                       Navigator.of(context)
-                          .pushNamed(DongSanPhamScreen.routeName);
+                          .pushReplacementNamed(DongSanPhamScreen.routeName);
+                    },
+                    visualDensity:
+                        const VisualDensity(horizontal: 0, vertical: -4),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 30),
+                  ),
+                  ListTile(
+                    title: const Text(
+                      'Sản phẩm',
+                    ),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushReplacementNamed(SanPhamScreen.routeName);
                     },
                     visualDensity:
                         const VisualDensity(horizontal: 0, vertical: -4),

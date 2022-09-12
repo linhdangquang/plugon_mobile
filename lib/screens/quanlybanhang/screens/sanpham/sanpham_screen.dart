@@ -2,23 +2,23 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:plugon_mobile/providers/quanlybanhang/dongsanpham.dart';
-import 'package:plugon_mobile/screens/quanlybanhang/screens/dong_san_pham/widgets/new_dongsanpham.dart';
+import 'package:plugon_mobile/providers/quanlybanhang/sanpham.dart';
+import 'package:plugon_mobile/screens/quanlybanhang/screens/sanpham/create_sanpham_screen.dart';
 import 'package:plugon_mobile/screens/quanlybanhang/widgets/quanlybanhang_drawer.dart';
 import 'package:plugon_mobile/widgets/screen_app_bar.dart';
 import 'package:provider/provider.dart';
 
-class DongSanPhamScreen extends StatefulWidget {
-  const DongSanPhamScreen({Key? key}) : super(key: key);
+class SanPhamScreen extends StatefulWidget {
+  const SanPhamScreen({Key? key}) : super(key: key);
 
-  static const routeName = '/quanlybanhang/dongsanpham';
+  static const routeName = '/quanlybanhang/sanpham';
 
   @override
-  State<DongSanPhamScreen> createState() => _DongSanPhamScreenState();
+  State<SanPhamScreen> createState() => _SanPhamScreenState();
 }
 
-class _DongSanPhamScreenState extends State<DongSanPhamScreen> {
+class _SanPhamScreenState extends State<SanPhamScreen> {
   final List<String> categories = [
     'Tất cả',
   ];
@@ -27,68 +27,31 @@ class _DongSanPhamScreenState extends State<DongSanPhamScreen> {
 
   String _selectedCategory = 'Tất cả';
 
-  // var pageContext;
+  setLoading(bool bool) {
+    setState(() {
+      _isLoading = bool;
+    });
+  }
 
   @override
   void initState() {
-    setState(() => _isLoading = true);
-    Provider.of<DongSanPhamItems>(context, listen: false)
+    setLoading(true);
+    Provider.of<SanPhamItems>(context, listen: false)
         .fetchAndSetItems()
-        .then((_) => {setState((() => _isLoading = false))});
+        .then((_) => setLoading(false));
     super.initState();
-  }
-
-  void _delete(BuildContext context, int id) {
-    showDialog(
-        context: context,
-        builder: (BuildContext ctx) {
-          return AlertDialog(
-            title: const Text('Xác nhận xóa'),
-            actions: [
-              TextButton(
-                  onPressed: () async {
-                    try {
-                      await Provider.of<DongSanPhamItems>(context,
-                              listen: false)
-                          .deleteDongSanPham(id);
-                      Fluttertoast.showToast(msg: 'Xóa thành công');
-                    } catch (e) {
-                      Fluttertoast.showToast(msg: 'Xóa thất bại');
-                    } finally {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text('Đồng ý')),
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all(
-                      Colors.red[500],
-                    ),
-                    overlayColor: MaterialStateProperty.all(
-                      Colors.red[200],
-                    ),
-                  ),
-                  child: const Text('Không'))
-            ],
-          );
-        });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const ScreenAppBar(
-        title: 'QLBH - Dòng sản phẩm',
+        title: 'QLBH - Sản phẩm',
         imgPath: 'assets/images/crm-crm.png',
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showModalDongSanPham(context, -1);
-        },
-        tooltip: 'Add',
+        onPressed: () =>
+            Navigator.of(context).pushNamed(CreateSanPhamScreen.routeName),
         child: const Icon(Icons.add),
       ),
       body: _isLoading
@@ -161,10 +124,11 @@ class _DongSanPhamScreenState extends State<DongSanPhamScreen> {
                     ),
                   ),
                   Expanded(
-                      child: Consumer<DongSanPhamItems>(
-                    builder: (_, dongSanPham, __) =>
-                        _buildDataTable(dongSanPham.items),
-                  )),
+                    child: Consumer<SanPhamItems>(
+                      builder: (_, sanPham, __) =>
+                          _buildDataTable(sanPham.items),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -172,73 +136,92 @@ class _DongSanPhamScreenState extends State<DongSanPhamScreen> {
     );
   }
 
-  Future<dynamic> _showModalDongSanPham(BuildContext context, int id) {
-    return showMaterialModalBottomSheet(
-        context: context,
-        builder: (context) => SingleChildScrollView(
-            controller: ModalScrollController.of(context),
-            child: NewDongSanPham(
-              id: id,
-            )));
-  }
-
   Widget _buildDataTable(rowData) {
     final List<DataColumn> columns = [
       const DataColumn(label: Text('Mã')),
       const DataColumn(label: Text('Tên')),
-      const DataColumn(label: Text('Thao tác')),
+      const DataColumn(label: Text('Dòng sản phẩm')),
+      const DataColumn(label: Text('')),
     ];
 
-    List<DataRow> getRows(List<DongSanPham> rowData) {
+    List<DataRow> getRows(List<SanPham> rowData) {
       return rowData.map((row) {
         return DataRow(
           key: ValueKey(row.id),
           cells: [
-            DataCell(Text(row.productFamilyCode)),
-            DataCell(Text(row.productFamilyName)),
-            DataCell(PopupMenuButton(
-                elevation: 3,
-                onSelected: (result) {
-                  if (result == 'edit') {
-                    _showModalDongSanPham(context, row.id);
-                  } else {
-                    _delete(context, row.id);
-                  }
-                },
-                itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: const [
-                            Icon(
-                              Icons.edit_outlined,
-                              color: Colors.lightBlue,
-                              size: 20,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Sửa")
-                          ],
+            DataCell(Text(
+              row.productCode,
+              style: TextStyle(color: Colors.blue[400]),
+            )),
+            DataCell(Text(
+              row.productName,
+              style: TextStyle(color: Colors.blue[400]),
+            )),
+            DataCell(Consumer<DongSanPhamItems>(
+                builder: ((context, dongSanPham, child) {
+              final isDongSanPham = dongSanPham.items
+                  .firstWhere((element) => element.id == row.productFamilyId);
+              return Text(
+                  isDongSanPham != null ? isDongSanPham.productFamilyName : '');
+            }))),
+            DataCell(Center(
+              child: PopupMenuButton(
+                  elevation: 5,
+                  onSelected: (result) async {
+                    if (result == "Sửa") {
+                      Navigator.of(context).pushNamed(
+                          CreateSanPhamScreen.routeName,
+                          arguments: row.id);
+                    } else {
+                      await Provider.of<SanPhamItems>(context, listen: false)
+                          .changeProductStatus(row.id)
+                          .catchError((e) {})
+                          .then((_) => Fluttertoast.showToast(
+                              msg: 'Đã thay đổi trạng thái thành công',
+                              backgroundColor: Colors.greenAccent,
+                              textColor: Colors.white));
+                      // .then((value) => print(value));
+                    }
+                  },
+                  itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'Sửa',
+                          child: Row(
+                            children: const [
+                              Icon(
+                                Icons.edit_outlined,
+                                color: Colors.lightBlue,
+                                size: 20,
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text("Sửa")
+                            ],
+                          ),
                         ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: const [
-                            Icon(
-                              Icons.delete_outline,
-                              color: Colors.redAccent,
-                              size: 20,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Xóa")
-                          ],
+                        PopupMenuItem(
+                          value: row.status == 1 ? 'Khoá' : 'Mở',
+                          child: Row(
+                            children: [
+                              Icon(
+                                row.status == 1
+                                    ? Icons.lock_open_outlined
+                                    : Icons.lock_outline,
+                                color: row.status == 1
+                                    ? Colors.greenAccent
+                                    : Colors.redAccent,
+                                size: 20,
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Text(row.status == 1 ? "Khóa" : "Mở")
+                            ],
+                          ),
                         ),
-                      ),
-                    ])),
+                      ]),
+            )),
           ],
         );
       }).toList();
@@ -249,6 +232,7 @@ class _DongSanPhamScreenState extends State<DongSanPhamScreen> {
       child: DataTable2(
         showCheckboxColumn: true,
         columnSpacing: 12,
+        minWidth: 500,
         horizontalMargin: 12,
         headingRowHeight: 40,
         headingRowColor:
